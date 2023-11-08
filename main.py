@@ -30,7 +30,7 @@ def Render():
 
   pygame.display.update()
 
-def calculate_rotation_abs(vector1, vector2):
+def calculate_rotation(vector1, vector2):
   dot_product = np.dot(vector1, vector2)
 
   magnitude1 = np.linalg.norm(vector1)
@@ -41,7 +41,7 @@ def calculate_rotation_abs(vector1, vector2):
 
   return np.degrees(angle_radians)
 
-def calculate_rotation(vector1, vector2): 
+def EV3Rotation(vector1, vector2): 
   cross_product = np.cross(vector1, vector2)
 
   magnitude1 = np.linalg.norm(vector1) 
@@ -166,7 +166,7 @@ def move(direction):
 
 
 def Update(direction):
-  global units_traveled, error, rotation_accumulator, current_direction, player_x, player_y
+  global units_traveled, error, rotation_accumulator, current_direction, player_x, player_y, EV3_path
   if not can_move(direction, player_y, player_x):
      return
 
@@ -175,14 +175,17 @@ def Update(direction):
   player_y += dy
 
   rotation_accumulator += calculate_rotation(get_orentation_vector(current_direction), get_orentation_vector(direction))
-  current_direction = direction
-     
+  ev3_rotation = EV3Rotation(get_orentation_vector(current_direction), get_orentation_vector(direction))
+  move_distance = 1 if not direction in [Direction.UL, Direction.LD, Direction.DR, Direction.RU] else 1.414
   if grid[player_y][player_x] == BLACK:
       grid[player_y][player_x] = WHITE
   else:
-    error += 1 if not direction in [Direction.UL, Direction.LD, Direction.DR, Direction.RU] else 1.414
+    error += move_distance
+    
+  units_traveled += move_distance
+  EV3_path.append((ev3_rotation, move_distance))
   
-  units_traveled += 1 if not direction in [Direction.UL, Direction.LD, Direction.DR, Direction.RU] else 1.414
+  current_direction = direction
   
 def ReverseDir(direction):
   if direction == Direction.Up:
@@ -432,6 +435,13 @@ def semi_random():
   Update(dir)
 ###########################################################################################
 
+def CalculateTimeTaken(path, rot_vel, vel):
+  time = 0
+  for (rot, dist) in path:
+    time += abs(rot) / rot_vel
+    time += dist * vel
+    
+  return time 
 
 
 def Start():
@@ -498,7 +508,16 @@ while grid[player_y][player_x] == RED:
   player_y = random.randint(0, GRID_HEIGHT - 1)
 ###########################################################################################
 
+EV3_path = []
 grid[player_y][player_x] = WHITE
 Start()
-print(f"Distance traveled {units_traveled} units, error {error} units, total rotation {rotation_accumulator} deg")
+
+rotational_speed = 180 # 180 deg/s
+velocity = 0.5 # 0.5 s/units
+time_taken = CalculateTimeTaken(EV3_path, rotational_speed, velocity)
+print(f"Distance traveled {units_traveled} units, error {error} units, total rotation {rotation_accumulator} deg, time take {time_taken}s")
+with open("ev3_path.txt", 'w') as file:
+    file.write(str(EV3_path))
+
+
 pygame.quit()
