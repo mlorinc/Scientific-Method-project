@@ -246,14 +246,13 @@ def get_movement_array(direction):
   
 
 def heuristic(a, b):
-    # Otherwise, use the Manhattan distance heuristic
+    # Use the Manhattan distance heuristic
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 # Function to determine the closest black cell using Breadth-First Search (BFS)
 def get_closest_black_cell(start, direction):
     queue = [start]
     visited = set()
-    
     movement_array = get_movement_array(direction)
 
     # Iterate through the grid using BFS until a black cell is found
@@ -271,7 +270,6 @@ def get_closest_black_cell(start, direction):
           if(row, col) not in visited:
             queue.append((row, col))
             visited.add((row, col) )
-  
     return None
   
 def get_closest_black_cell_sequential(start):
@@ -295,15 +293,14 @@ def get_closest_black_cell_sequential(start):
           if(row, col) not in visited:
             queue.append((row, col))
             visited.add((row, col) )
-  
     return None
 
 def astar(start, goal):
     open_set = PriorityQueue()  # Initialize a priority queue to manage nodes for exploration
-    open_set.put((0, start))  # Add the start node to the open set
-    came_from = {}  # Keep track of the previous node in the shortest path
+    open_set.put((0, start))
+    came_from = {}
     g_score = {spot: float("inf") for row in grid for spot in row}  # Keep the current best guess of distance from start to a position
-    g_score[start] = 0  # Set the cost from the start node to itself as 0
+    g_score[start] = 0 
   
     while not open_set.empty():
         current = open_set.get()[1]  # Get the node with the lowest total cost (f-score)
@@ -322,15 +319,16 @@ def astar(start, goal):
 
             # Ensure the node is within the grid's boundaries and is not an obstacle (RED)
             if 0 <= row < len(grid) and 0 <= col < len(grid[0]) and grid[row][col] != RED:
-                tentative_g_score = g_score[current] + 1  # Tentatively calculate the cost to the node
+                tentative_g_score = g_score[current] + 1
 
                 # Update the best path if this node provides a shorter path to the goal
                 if tentative_g_score < g_score.get((row, col), float("inf")):
-                    came_from[(row, col)] = current  # Record the path
-                    g_score[(row, col)] = tentative_g_score  # Update the cost to this node
-                    f_score = tentative_g_score + heuristic(goal, (row, col))  # Calculate total score for the node
-                    open_set.put((f_score, (row, col)))  # Add the node to the queue for further exploration
-    return []  # If no path found, return an empty list
+                    came_from[(row, col)] = current 
+                    g_score[(row, col)] = tentative_g_score 
+                    f_score = tentative_g_score + heuristic(goal, (row, col))
+                    open_set.put((f_score, (row, col))) 
+    return [] 
+
 
 # Using the BFS-based closest black cell logic in the pathfinding algorithm
 def navigate_to_closest_black_cell(start, direction):
@@ -345,7 +343,6 @@ def navigate_to_closest_black_cell(start, direction):
   if closest_black_cell:
       # Find the path to the closest black cell using A*
       return astar(start, closest_black_cell)
-  # Return None if no black cells are found
   return None
 ###########################################################################################
 
