@@ -246,9 +246,6 @@ def get_movement_array(direction):
   
 
 def heuristic(a, b):
-    # If the current node is a black grid cell, reduce the heuristic to encourage exploration
-    if grid[a[0]][a[1]] == BLACK:
-        return 0
     # Otherwise, use the Manhattan distance heuristic
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
