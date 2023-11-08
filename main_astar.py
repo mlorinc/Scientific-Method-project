@@ -183,8 +183,8 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Waka waka")
 
 ############## Initialize the player's position, we can make more tests using same map but different starting position ####
-player_x = 0 # random.randint(0, GRID_WIDTH - 1)
-player_y = 0 # random.randint(0, GRID_HEIGHT - 1)
+player_x = random.randint(0, GRID_WIDTH - 1)
+player_y = random.randint(0, GRID_HEIGHT - 1)
 ###########################################################################################
 
 grid = [[BLACK for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
@@ -212,7 +212,6 @@ spiral_state = 0
 
 
 #################################### A* Algorithm #########################################
-# Modify the heuristic to return 0 for black cells to encourage their exploration
 # Modify the heuristic to return 0 for black cells to encourage their exploration
 def heuristic(a, b):
     # If the current node is a black grid cell, reduce the heuristic to encourage exploration
