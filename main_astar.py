@@ -2,6 +2,7 @@ import pygame
 import random
 from enum import Enum
 import numpy as np
+from queue import PriorityQueue
 
 pygame.init()
 
@@ -191,9 +192,12 @@ grid = [[BLACK for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 ############## CREATE OBSTACLE MAPS HERE, we'll need like 3 I guess #######################
 obstacles_1 = []
 obstacles_2 = [(3, 5), (4, 5), (4, 6), (5, 6)] # [(y, x), ...]
+obstacles_3 = [(3, 5), (4, 5), (4, 6), (5, 6), (5, 5), (5, 3), (5, 4), (6, 4), (6, 5), (10, 11), (10, 12), (10, 13), (10, 14), (11, 11), (12, 11), (13, 11), (13, 12), (13, 13), (11, 14), (12, 15)]
 
-obstacle_map = obstacles_2
+obstacle_map = obstacles_3
 ###########################################################################################
+
+
 
 for obstacle in obstacle_map:
     grid[obstacle[0]][obstacle[1]] = RED
@@ -207,14 +211,27 @@ spiral_state = 0
 
 
 
-from queue import PriorityQueue
-
+#################################### A* Algorithm #########################################
+# Modify the heuristic to return 0 for black cells to encourage their exploration
 def heuristic(a, b):
-    # If the current node (a) is a black grid cell, return a low cost to encourage its exploration
     if grid[a[0]][a[1]] == BLACK:
         return 0
-    else:
-        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+# Function to determine the closest black cell using BFS
+def get_closest_black_cell(start):
+    queue = [start]
+    visited = set()
+    while queue:
+        current = queue.pop(0)
+        if grid[current[0]][current[1]] == BLACK:
+            return current
+        visited.add(current)
+        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+            row, col = current[0] + dy, current[1] + dx
+            if 0 <= row < len(grid) and 0 <= col < len(grid[0]) and grid[row][col] != RED and (row, col) not in visited:
+                queue.append((row, col))
+    return None
 
 def astar(start, goal):
     open_set = PriorityQueue()
@@ -226,14 +243,14 @@ def astar(start, goal):
     while not open_set.empty():
         current = open_set.get()[1]
 
-        if grid[current[0]][current[1]] == BLACK:
+        if current == goal:
             path = []
             while current in came_from:
                 path.append(current)
                 current = came_from[current]
             return path
 
-        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0), (-1, -1), (1, -1), (1, 1), (-1, 1)]:
+        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
             row, col = current[0] + dy, current[1] + dx
             if 0 <= row < len(grid) and 0 <= col < len(grid[0]) and grid[row][col] != RED:
                 tentative_g_score = g_score[current] + 1
@@ -245,6 +262,14 @@ def astar(start, goal):
                     open_set.put((f_score, (row, col)))
 
     return []
+
+# Using the BFS-based closest black cell logic in the pathfinding algorithm
+def navigate_to_closest_black_cell(start):
+    closest_black_cell = get_closest_black_cell(start)
+    if closest_black_cell:
+        return astar(start, closest_black_cell)
+    return None
+###########################################################################################
 
 
 def Start():
@@ -275,7 +300,7 @@ def Start():
             if not path:
                 # Generate a new path
                 goal = (random.randint(0, GRID_HEIGHT - 1), random.randint(0, GRID_WIDTH - 1))
-                path = astar((player_y, player_x), goal)
+                path = navigate_to_closest_black_cell((player_y, player_x))
 
             if path:
                 next_step = path.pop()
