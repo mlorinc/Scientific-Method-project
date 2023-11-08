@@ -184,6 +184,8 @@ class Algorithm(Enum):
   Random = 1
   AStar = 2
   AStarSequential = 3
+  SemiRandom = 4
+  AStartRandom = 5
 ######################################################## 
 
 ################### Adjust as needed ###################
@@ -294,6 +296,14 @@ def get_closest_black_cell_sequential(start):
             queue.append((row, col))
             visited.add((row, col) )
     return None
+  
+def get_closest_black_cell_random():
+  black_indexes = [(y, x) for y, row in enumerate(grid) for x, val in enumerate(row) if val == BLACK]
+
+  if not black_indexes:
+      return None
+
+  return random.choice(black_indexes)
 
 def astar(start, goal):
     open_set = PriorityQueue()  # Initialize a priority queue to manage nodes for exploration
@@ -339,49 +349,29 @@ def navigate_to_closest_black_cell(start, direction):
     closest_black_cell = get_closest_black_cell(start, direction)
   elif algorithm == Algorithm.AStarSequential:
     closest_black_cell = get_closest_black_cell_sequential(start)
+  elif algorithm == Algorithm.AStartRandom:
+    closest_black_cell = get_closest_black_cell_random()
 
   if closest_black_cell:
-      # Find the path to the closest black cell using A*
       return astar(start, closest_black_cell)
+  
   return None
 ###########################################################################################
 
 
 ################################ Semi random algorithm ####################################
 def semi_random():
-    while BLACK in [cell for row in grid for cell in row]:
-        # Get the adjacent cells for the current player position
-        adj_cells = [
-            (player_y - 1, player_x),  # Up
-            (player_y + 1, player_x),  # Down
-            (player_y, player_x - 1),  # Left
-            (player_y, player_x + 1),  # Right
-            (player_y - 1, player_x - 1),  # Upper Left
-            (player_y + 1, player_x - 1),  # Lower Left
-            (player_y + 1, player_x + 1),  # Lower Right
-            (player_y - 1, player_x + 1),  # Upper Right
-        ]
+  dir_array = get_movement_array(Direction.Up)
+  valid_dir_array = [dir for dir in dir_array if can_move(dir, player_y, player_x)]
+  neighbourhood_black_cells = [dir for dir in valid_dir_array if square_in_sight(dir, player_y, player_x) == BLACK]
+  
+  dir = None
+  if neighbourhood_black_cells:
+      dir = random.choice(neighbourhood_black_cells)
+  else:
+      dir = random.choice(valid_dir_array)
 
-        # Filter out obstacles and out-of-bounds cells
-        valid_adj_cells = [(y, x) for y, x in adj_cells if 0 <= y < GRID_HEIGHT and 0 <= x < GRID_WIDTH and grid[y][x] != RED]
-
-        # Choose a black cell to move toward
-        black_adj_cells = [(y, x) for y, x in valid_adj_cells if grid[y][x] == BLACK]
-        if black_adj_cells:
-            y, x = black_adj_cells[0]
-        else:
-            # If no black cells are adjacent, pick a random cell
-            y, x = random.choice(valid_adj_cells)
-
-        # Move the player towards the selected cell
-        if y < player_y:
-            Update(Direction.Up)
-        elif y > player_y:
-            Update(Direction.Down)
-        elif x < player_x:
-            Update(Direction.Left)
-        elif x > player_x:
-            Update(Direction.Right)
+  Update(dir)
 ###########################################################################################
 
 
@@ -410,7 +400,7 @@ def Start():
         # add new algorithms here
         if algorithm == Algorithm.Random:
             Update(Direction(random.randint(0, 7)))
-        elif algorithm == Algorithm.AStar or algorithm == Algorithm.AStarSequential:
+        elif algorithm in [Algorithm.AStar, Algorithm.AStarSequential, Algorithm.AStartRandom]:
             if not path:
                 # Generate a new path
                 path = navigate_to_closest_black_cell((player_y, player_x), current_direction)
@@ -425,12 +415,14 @@ def Start():
                     Update(Direction.Left)
                 elif next_step[1] > player_x:
                     Update(Direction.Right)
+        elif algorithm == Algorithm.SemiRandom:
+          semi_random()
 
         Render()
 
 
 # change here to test your algorithm
-algorithm = Algorithm.AStarSequential
+algorithm = Algorithm.AStartRandom
 Start()
 print(f"Distance traveled {units_traveled} units, error {error} units, total rotation {rotation_accumulator} deg")
 
