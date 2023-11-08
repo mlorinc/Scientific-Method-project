@@ -41,23 +41,44 @@ def calculate_rotation(vector1, vector2):
 
   return np.degrees(angle_radians)
 
-def can_move(direction):
+def square_in_sight(direction):
   if direction == Direction.Up:
-    return player_y > 0 and not grid[player_y-1][player_x] == RED
+    return grid[player_y-1][player_x]
   elif direction == Direction.Down:
-    return player_y < GRID_HEIGHT - 1 and not grid[player_y+1][player_x] == RED
+    return grid[player_y+1][player_x]
   elif direction == Direction.Left:
-    return player_x > 0 and not grid[player_y][player_x-1] == RED
+    return grid[player_y][player_x-1]
   elif direction == Direction.Right:
-    return player_x < GRID_WIDTH - 1 and not grid[player_y][player_x+1] == RED
+    return grid[player_y][player_x+1]
   elif direction == Direction.UL:
-    return can_move(Direction.Up) and can_move(Direction.Left) and not grid[player_y-1][player_x-1] == RED
+    return grid[player_y-1][player_x-1]
   elif direction == Direction.LD:
-    return can_move(Direction.Left) and can_move(Direction.Down) and not grid[player_y+1][player_x-1] == RED
+    return grid[player_y+1][player_x-1]
   elif direction == Direction.DR:
-    return can_move(Direction.Down) and can_move(Direction.Right) and not grid[player_y+1][player_x+1] == RED
+    return grid[player_y+1][player_x+1]
   elif direction == Direction.RU:
-    return can_move(Direction.Right) and can_move(Direction.Up) and not grid[player_y-1][player_x+1] == RED
+    return grid[player_y-1][player_x+1]
+
+def can_move(direction):
+  if square_in_sight(direction) == RED:
+    return False
+
+  if direction == Direction.Up:
+    return player_y > 0
+  elif direction == Direction.Down:
+    return player_y < GRID_HEIGHT - 1
+  elif direction == Direction.Left:
+    return player_x > 0
+  elif direction == Direction.Right:
+    return player_x < GRID_WIDTH - 1
+  elif direction == Direction.UL:
+    return can_move(Direction.Up) and can_move(Direction.Left) and can_move(Direction.UL)
+  elif direction == Direction.LD:
+    return can_move(Direction.Left) and can_move(Direction.Down) and can_move(Direction.LD)
+  elif direction == Direction.DR:
+    return can_move(Direction.Down) and can_move(Direction.Right) and can_move(Direction.DR)
+  elif direction == Direction.RU:
+    return can_move(Direction.Right) and can_move(Direction.Up) and can_move(Direction.RU)
   
 def get_orentation_vector(direction):
   if direction == Direction.Up:
