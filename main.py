@@ -41,44 +41,46 @@ def calculate_rotation(vector1, vector2):
 
   return np.degrees(angle_radians)
 
-def square_in_sight(direction):
+def square_in_sight(direction, y, x):
   if direction == Direction.Up:
-    return grid[player_y-1][player_x]
+    return grid[y-1][x]
   elif direction == Direction.Down:
-    return grid[player_y+1][player_x]
+    return grid[y+1][x]
   elif direction == Direction.Left:
-    return grid[player_y][player_x-1]
+    return grid[y][x-1]
   elif direction == Direction.Right:
-    return grid[player_y][player_x+1]
+    return grid[y][x+1]
   elif direction == Direction.UL:
-    return grid[player_y-1][player_x-1]
+    return grid[y-1][x-1]
   elif direction == Direction.LD:
-    return grid[player_y+1][player_x-1]
+    return grid[y+1][x-1]
   elif direction == Direction.DR:
-    return grid[player_y+1][player_x+1]
+    return grid[y+1][x+1]
   elif direction == Direction.RU:
-    return grid[player_y-1][player_x+1]
+    return grid[y-1][x+1]
 
-def can_move(direction):
-  if square_in_sight(direction) == RED:
+def can_move(direction, y, x):
+  if direction == Direction.Up and not y > 0:
     return False
-
-  if direction == Direction.Up:
-    return player_y > 0
-  elif direction == Direction.Down:
-    return player_y < GRID_HEIGHT - 1
-  elif direction == Direction.Left:
-    return player_x > 0
-  elif direction == Direction.Right:
-    return player_x < GRID_WIDTH - 1
+  elif direction == Direction.Down and not y < GRID_HEIGHT - 1:
+    return False
+  elif direction == Direction.Left and not x > 0:
+    return False
+  elif direction == Direction.Right and not x < GRID_WIDTH - 1:
+    return False
   elif direction == Direction.UL:
-    return can_move(Direction.Up) and can_move(Direction.Left) and can_move(Direction.UL)
+    return can_move(Direction.Up, y, x) and can_move(Direction.Left, y, x)
   elif direction == Direction.LD:
-    return can_move(Direction.Left) and can_move(Direction.Down) and can_move(Direction.LD)
+    return can_move(Direction.Left, y, x) and can_move(Direction.Down, y, x)
   elif direction == Direction.DR:
-    return can_move(Direction.Down) and can_move(Direction.Right) and can_move(Direction.DR)
+    return can_move(Direction.Down, y, x) and can_move(Direction.Right, y, x)
   elif direction == Direction.RU:
-    return can_move(Direction.Right) and can_move(Direction.Up) and can_move(Direction.RU)
+    return can_move(Direction.Right, y, x) and can_move(Direction.Up, y, x)
+  
+  if square_in_sight(direction, y, x) == RED:
+    return False
+  
+  return True
   
 def get_orentation_vector(direction):
   if direction == Direction.Up:
@@ -121,7 +123,7 @@ def manual_control(keys):
     Update(Direction.RU)
 
 def move(direction):
-  global player_y, player_x
+  player_y, player_x = 0, 0
 
   if direction == Direction.Up:
     player_y -= 1 
@@ -143,17 +145,18 @@ def move(direction):
   elif direction == Direction.RU:
     player_x += 1
     player_y -= 1
-  else:
-     return
+
+  return (player_y, player_x)
 
 
 def Update(direction):
-  global units_traveled, error, rotation_accumulator, current_direction
-
-  if not can_move(direction):
+  global units_traveled, error, rotation_accumulator, current_direction, player_x, player_y
+  if not can_move(direction, player_y, player_x):
      return
 
-  move(direction)
+  dy, dx = move(direction)
+  player_x += dx
+  player_y += dy
 
   rotation_accumulator += calculate_rotation(get_orentation_vector(current_direction), get_orentation_vector(direction))
   current_direction = direction
@@ -164,9 +167,6 @@ def Update(direction):
     error += 1 if not direction in [Direction.UL, Direction.LD, Direction.DR, Direction.RU] else 1.414
   
   units_traveled += 1 if not direction in [Direction.UL, Direction.LD, Direction.DR, Direction.RU] else 1.414
-
-
-
 
 class Direction(Enum):
   Up = 0
@@ -203,11 +203,6 @@ font = pygame.font.Font(None, font_size)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Waka waka")
 
-############## Initialize the player's position, we can make more tests using same map but different starting position ####
-player_x = random.randint(0, GRID_WIDTH - 1)
-player_y = random.randint(0, GRID_HEIGHT - 1)
-###########################################################################################
-
 grid = [[BLACK for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 
 ############## CREATE OBSTACLE MAPS HERE, we'll need like 3 I guess #######################
@@ -218,10 +213,17 @@ obstacles_3 = [(3, 5), (4, 5), (4, 6), (5, 6), (5, 5), (5, 3), (5, 4), (6, 4), (
 obstacle_map = obstacles_3
 ###########################################################################################
 
-
-
 for obstacle in obstacle_map:
     grid[obstacle[0]][obstacle[1]] = RED
+    
+############## Initialize the player's position, we can make more tests using same map but different starting position ####
+player_x = random.randint(0, GRID_WIDTH - 1)
+player_y = random.randint(0, GRID_HEIGHT - 1)
+
+while grid[player_y][player_x] == RED:
+  player_x = random.randint(0, GRID_WIDTH - 1)
+  player_y = random.randint(0, GRID_HEIGHT - 1)
+###########################################################################################
 
 grid[player_y][player_x] = WHITE
 units_traveled = 0
@@ -234,6 +236,14 @@ spiral_state = 0
 
 #################################### A* Algorithm #########################################
 # Modify the heuristic to return 0 for black cells to encourage their exploration
+def get_movement_array(direction):
+  directions = [Direction.Up, Direction.RU, Direction.Right, Direction.DR, Direction.Down, Direction.LD, Direction.Left, Direction.UL]
+  index = directions.index(direction)
+  
+  return directions[index:] + directions[:index]
+  
+  
+
 def heuristic(a, b):
     # If the current node is a black grid cell, reduce the heuristic to encourage exploration
     if grid[a[0]][a[1]] == BLACK:
@@ -242,24 +252,29 @@ def heuristic(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 # Function to determine the closest black cell using Breadth-First Search (BFS)
-def get_closest_black_cell(start):
+def get_closest_black_cell(start, direction):
     queue = [start]
     visited = set()
+    
+    movement_array = get_movement_array(direction)
 
     # Iterate through the grid using BFS until a black cell is found
     while queue:
         current = queue.pop(0)
         if grid[current[0]][current[1]] == BLACK:
-            # Return the found black cell as the closest
             return current
         visited.add(current)
-        # Explore neighboring cells
-        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-            row, col = current[0] + dy, current[1] + dx
-            # Check for grid boundaries and avoid RED cells
-            if 0 <= row < len(grid) and 0 <= col < len(grid[0]) and grid[row][col] != RED and (row, col) not in visited:
-                queue.append((row, col))
-    # If no black cells found, return None
+        for direction in movement_array:
+          print(direction, current[0], current[1])
+          if not can_move(direction, current[0], current[1]):
+            continue
+
+          dy, dx = move(direction)
+          row, col = current[0] + dy, current[1] + dx
+          if(row, col) not in visited:
+            queue.append((row, col))
+            visited.add((row, col) )
+  
     return None
 
 def astar(start, goal):
@@ -268,7 +283,7 @@ def astar(start, goal):
     came_from = {}  # Keep track of the previous node in the shortest path
     g_score = {spot: float("inf") for row in grid for spot in row}  # Keep the current best guess of distance from start to a position
     g_score[start] = 0  # Set the cost from the start node to itself as 0
-
+  
     while not open_set.empty():
         current = open_set.get()[1]  # Get the node with the lowest total cost (f-score)
 
@@ -297,8 +312,9 @@ def astar(start, goal):
     return []  # If no path found, return an empty list
 
 # Using the BFS-based closest black cell logic in the pathfinding algorithm
-def navigate_to_closest_black_cell(start):
-    closest_black_cell = get_closest_black_cell(start)
+def navigate_to_closest_black_cell(start, direction):
+    closest_black_cell = get_closest_black_cell(start, direction)
+    print(closest_black_cell)
     if closest_black_cell:
         # Find the path to the closest black cell using A*
         return astar(start, closest_black_cell)
@@ -334,7 +350,7 @@ def Start():
         elif algorithm == Algorithm.AStar:
             if not path:
                 # Generate a new path
-                path = navigate_to_closest_black_cell((player_y, player_x))
+                path = navigate_to_closest_black_cell((player_y, player_x), current_direction)
 
             if path:
                 next_step = path.pop()
