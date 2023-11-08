@@ -213,61 +213,76 @@ spiral_state = 0
 
 #################################### A* Algorithm #########################################
 # Modify the heuristic to return 0 for black cells to encourage their exploration
+# Modify the heuristic to return 0 for black cells to encourage their exploration
 def heuristic(a, b):
+    # If the current node is a black grid cell, reduce the heuristic to encourage exploration
     if grid[a[0]][a[1]] == BLACK:
         return 0
+    # Otherwise, use the Manhattan distance heuristic
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-# Function to determine the closest black cell using BFS
+# Function to determine the closest black cell using Breadth-First Search (BFS)
 def get_closest_black_cell(start):
     queue = [start]
     visited = set()
+
+    # Iterate through the grid using BFS until a black cell is found
     while queue:
         current = queue.pop(0)
         if grid[current[0]][current[1]] == BLACK:
+            # Return the found black cell as the closest
             return current
         visited.add(current)
+        # Explore neighboring cells
         for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
             row, col = current[0] + dy, current[1] + dx
+            # Check for grid boundaries and avoid RED cells
             if 0 <= row < len(grid) and 0 <= col < len(grid[0]) and grid[row][col] != RED and (row, col) not in visited:
                 queue.append((row, col))
+    # If no black cells found, return None
     return None
 
 def astar(start, goal):
-    open_set = PriorityQueue()
-    open_set.put((0, start))
-    came_from = {}
-    g_score = {spot: float("inf") for row in grid for spot in row}
-    g_score[start] = 0
+    open_set = PriorityQueue()  # Initialize a priority queue to manage nodes for exploration
+    open_set.put((0, start))  # Add the start node to the open set
+    came_from = {}  # Keep track of the previous node in the shortest path
+    g_score = {spot: float("inf") for row in grid for spot in row}  # Keep the current best guess of distance from start to a position
+    g_score[start] = 0  # Set the cost from the start node to itself as 0
 
     while not open_set.empty():
-        current = open_set.get()[1]
+        current = open_set.get()[1]  # Get the node with the lowest total cost (f-score)
 
         if current == goal:
+            # Reconstruct the path from goal to start by traversing the 'came_from' chain
             path = []
             while current in came_from:
                 path.append(current)
                 current = came_from[current]
             return path
 
+        # Explore the neighboring nodes in all four directions: up, down, left, and right
         for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
             row, col = current[0] + dy, current[1] + dx
+
+            # Ensure the node is within the grid's boundaries and is not an obstacle (RED)
             if 0 <= row < len(grid) and 0 <= col < len(grid[0]) and grid[row][col] != RED:
-                tentative_g_score = g_score[current] + 1
+                tentative_g_score = g_score[current] + 1  # Tentatively calculate the cost to the node
 
+                # Update the best path if this node provides a shorter path to the goal
                 if tentative_g_score < g_score.get((row, col), float("inf")):
-                    came_from[(row, col)] = current
-                    g_score[(row, col)] = tentative_g_score
-                    f_score = tentative_g_score + heuristic(goal, (row, col))
-                    open_set.put((f_score, (row, col)))
-
-    return []
+                    came_from[(row, col)] = current  # Record the path
+                    g_score[(row, col)] = tentative_g_score  # Update the cost to this node
+                    f_score = tentative_g_score + heuristic(goal, (row, col))  # Calculate total score for the node
+                    open_set.put((f_score, (row, col)))  # Add the node to the queue for further exploration
+    return []  # If no path found, return an empty list
 
 # Using the BFS-based closest black cell logic in the pathfinding algorithm
 def navigate_to_closest_black_cell(start):
     closest_black_cell = get_closest_black_cell(start)
     if closest_black_cell:
+        # Find the path to the closest black cell using A*
         return astar(start, closest_black_cell)
+    # Return None if no black cells are found
     return None
 ###########################################################################################
 
@@ -299,7 +314,6 @@ def Start():
         elif algorithm == Algorithm.AStar:
             if not path:
                 # Generate a new path
-                goal = (random.randint(0, GRID_HEIGHT - 1), random.randint(0, GRID_WIDTH - 1))
                 path = navigate_to_closest_black_cell((player_y, player_x))
 
             if path:
