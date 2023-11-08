@@ -25,6 +25,9 @@ grid_array = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]  # Ini
 # Create a list to store the indices of red squares
 red_indices = []
 
+# Variables to track dragging
+drawing = False
+
 # Run the game loop
 running = True
 while running:
@@ -36,10 +39,27 @@ while running:
             grid_x = x // GRID_SIZE
             grid_y = y // GRID_SIZE
             if event.button == 1:  # Left mouse button
+                drawing = True
                 if 0 <= grid_x < GRID_WIDTH and 0 <= grid_y < GRID_HEIGHT:
                     grid_array[grid_y][grid_x] = 1  # Change the value to represent RED
                     red_indices.append((grid_y, grid_x))  # Append the red square indices to the list
             elif event.button == 3:  # Right mouse button
+                drawing = True
+                if 0 <= grid_x < GRID_WIDTH and 0 <= grid_y < GRID_HEIGHT:
+                    grid_array[grid_y][grid_x] = 0  # Change the value back to represent BLACK
+                    if (grid_y, grid_x) in red_indices:
+                        red_indices.remove((grid_y, grid_x))  # Remove the indices from the red squares list
+        elif event.type == pygame.MOUSEBUTTONUP:
+            drawing = False
+        elif event.type == pygame.MOUSEMOTION and drawing:
+            x, y = event.pos
+            grid_x = x // GRID_SIZE
+            grid_y = y // GRID_SIZE
+            if event.buttons[0]:  # Left mouse button
+                if 0 <= grid_x < GRID_WIDTH and 0 <= grid_y < GRID_HEIGHT:
+                    grid_array[grid_y][grid_x] = 1  # Change the value to represent RED
+                    red_indices.append((grid_y, grid_x))  # Append the red square indices to the list
+            elif event.buttons[2]:  # Right mouse button
                 if 0 <= grid_x < GRID_WIDTH and 0 <= grid_y < GRID_HEIGHT:
                     grid_array[grid_y][grid_x] = 0  # Change the value back to represent BLACK
                     if (grid_y, grid_x) in red_indices:
