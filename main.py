@@ -206,6 +206,13 @@ class Algorithm(Enum):
   AStartRandom = 5
 ######################################################## 
 
+############ Add maps in this enumerator ###############
+class Map(Enum):
+   Empty = 0
+   Room = 1
+   Maze = 2
+########################################################
+
 ################### Adjust as needed ###################
 GRID_WIDTH = 30
 GRID_HEIGHT = 30
@@ -252,8 +259,12 @@ obstacle_maze = [(3, 3), (3, 4), (3,5), (3,6), (3,7), (3,8), (3,9), (3,10), (3,1
                 (15,12), (15,13), (15,14),
                 (16,14)]
 
-#obstacle_map = obstacles_sofa + obstacle_table + obstacle_bed + obstacle_kitchenwall + obstacle_cubboard2 + obstacle_chairs + obstacle_tv + obstacle_kitchenisland
-obstacle_map = obstacle_maze
+if (map == Map.Empty):
+   obstacle_map = []
+elif (map == Map.Room):
+  obstacle_map = obstacles_sofa + obstacle_table + obstacle_bed + obstacle_kitchenwall + obstacle_cubboard2 + obstacle_chairs + obstacle_tv + obstacle_kitchenisland
+elif (map == Map.Maze):
+   obstacle_map = obstacle_maze
 
 ###########################################################################################
 
@@ -465,7 +476,8 @@ def Start():
 
 
 # change here to test your algorithm
-algorithm = Algorithm.AStarSequential
+algorithm = Algorithm.AStar
+map = Map.Empty
 Start()
 print(f"Distance traveled {units_traveled} units, error {error} units, total rotation {rotation_accumulator} deg")
 
