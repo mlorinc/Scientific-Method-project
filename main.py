@@ -447,6 +447,17 @@ def Start():
     running = True
     path = []
 
+    obstacle_map = []
+    if (map == Map.Empty):
+      obstacle_map = []
+    elif (map == Map.Room):
+      obstacle_map = obstacles_sofa + obstacle_table + obstacle_bed + obstacle_kitchenwall + obstacle_cubboard2 + obstacle_chairs + obstacle_tv + obstacle_kitchenisland
+    elif (map == Map.Maze):
+      obstacle_map = obstacle_maze
+
+    for obstacle in obstacle_map:
+        grid[obstacle[0]][obstacle[1]] = RED
+
     while running and any(BLACK in row for row in grid):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
