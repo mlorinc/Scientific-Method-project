@@ -237,8 +237,7 @@ obstacle_chairs = [(16, 18), (16, 21), (22,18), (22,21)]
 obstacle_bed = [(29,5), (29,6), (29,7), (29,8), (29,9), (29,10), (29,11), (29,12), (29,13), (28,5), (28,6), (28,7), (28,8), (28,9), (28,10), (28,11), (28,12), (28,13), (27,5), (27,6), (27,7), (27,8), (27,9), (27,10), (27,11), (27,12), (27,13), (26,5), (26,6), (26,7), (26,8), (26,9), (26,10), (26,11), (26,12), (26,13), (25,5), (25,6), (25,7), (25,8), (25,9), (25,10), (25,11), (25,12), (25,13)]
 obstacle_cubboard2 = [(12,0), (13,0), (14,0), (15,0), (16,0), (12, 1), (13, 1), (14, 1), (15,1), (16,1), (12,2), (13,2), (14,2), (15,2), (16,2)]
 
-#obstacle_map = obstacles_sofa + obstacle_table + obstacle_bed + obstacle_kitchenwall + obstacle_cubboard2 + obstacle_chairs + obstacle_tv + obstacle_kitchenisland
-obstacles_3 = [(3, 3), (3, 4), (3,5), (3,6), (3,7), (3,8), (3,9), (3,10), (3,11), (3,12), (3,13), (3,14), (3,15), (3,16), (3,17), (3,18), (3,19), (3,20), (3,21), (3,22), (3,23), (3,24), (3,25), (3,26),
+obstacle_maze = [(3, 3), (3, 4), (3,5), (3,6), (3,7), (3,8), (3,9), (3,10), (3,11), (3,12), (3,13), (3,14), (3,15), (3,16), (3,17), (3,18), (3,19), (3,20), (3,21), (3,22), (3,23), (3,24), (3,25), (3,26),
                 (4,26), (5,26), (6,26), (7,26), (8,26), (9,26), (10,26), (11,26), (12,26), (13,26), (14,26), (15,26), (16,26), (17,26), (18,26), (19,26), (20,26), (21,26), (22,26), (23,26), (24,26), (25,26), (26,26),
                 (26,25), (26,24), (26,23), (26,22), (26,21), (26,20), (26,19), (26,18), (26,17), (26,16), (26,15), (26,14), (26,13), (26,12), (26,11), (26,10), (26,9), (26,8), (26,7), (26,6), (26,5), (26,4), (26,3),
                 (25,3 ), (24,3), (23,3), (22,3), (21,3), (20,3), (19,3), (18,3), (17,3), (16,3), (15,3), (14,3), (13,3), (12,3), (11,3), (10,3), (9,3), (8,3), (7,3),
@@ -253,7 +252,8 @@ obstacles_3 = [(3, 3), (3, 4), (3,5), (3,6), (3,7), (3,8), (3,9), (3,10), (3,11)
                 (15,12), (15,13), (15,14),
                 (16,14)]
 
-obstacle_map = obstacles_2
+#obstacle_map = obstacles_sofa + obstacle_table + obstacle_bed + obstacle_kitchenwall + obstacle_cubboard2 + obstacle_chairs + obstacle_tv + obstacle_kitchenisland
+obstacle_map = obstacle_maze
 
 ###########################################################################################
 
@@ -465,13 +465,13 @@ def Start():
 
 
 # change here to test your algorithm
-algorithm = Algorithm.AStar
+algorithm = Algorithm.AStarSequential
 Start()
 print(f"Distance traveled {units_traveled} units, error {error} units, total rotation {rotation_accumulator} deg")
 
-running_display = True
-while running_display:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running_display = False
+# running_display = True
+# while running_display:
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             running_display = False
 pygame.quit()
