@@ -353,6 +353,45 @@ def navigate_to_closest_black_cell(start, direction):
 ###########################################################################################
 
 
+################################ Semi random algorithm ####################################
+def semi_random():
+    while BLACK in [cell for row in grid for cell in row]:
+        # Get the adjacent cells for the current player position
+        adj_cells = [
+            (player_y - 1, player_x),  # Up
+            (player_y + 1, player_x),  # Down
+            (player_y, player_x - 1),  # Left
+            (player_y, player_x + 1),  # Right
+            (player_y - 1, player_x - 1),  # Upper Left
+            (player_y + 1, player_x - 1),  # Lower Left
+            (player_y + 1, player_x + 1),  # Lower Right
+            (player_y - 1, player_x + 1),  # Upper Right
+        ]
+
+        # Filter out obstacles and out-of-bounds cells
+        valid_adj_cells = [(y, x) for y, x in adj_cells if 0 <= y < GRID_HEIGHT and 0 <= x < GRID_WIDTH and grid[y][x] != RED]
+
+        # Choose a black cell to move toward
+        black_adj_cells = [(y, x) for y, x in valid_adj_cells if grid[y][x] == BLACK]
+        if black_adj_cells:
+            y, x = black_adj_cells[0]
+        else:
+            # If no black cells are adjacent, pick a random cell
+            y, x = random.choice(valid_adj_cells)
+
+        # Move the player towards the selected cell
+        if y < player_y:
+            Update(Direction.Up)
+        elif y > player_y:
+            Update(Direction.Down)
+        elif x < player_x:
+            Update(Direction.Left)
+        elif x > player_x:
+            Update(Direction.Right)
+###########################################################################################
+
+
+
 def Start():
     key_pressed = False
     running = True
