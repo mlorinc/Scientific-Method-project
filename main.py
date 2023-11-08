@@ -2,6 +2,9 @@ import pygame
 import random
 from enum import Enum
 import numpy as np
+from queue import PriorityQueue
+
+pygame.init()
 
 def Render():
   # Fill the screen with the grid
@@ -122,6 +125,7 @@ def move(direction):
   else:
      return
 
+
 def Update(direction):
   global units_traveled, error, rotation_accumulator, current_direction
 
@@ -140,7 +144,8 @@ def Update(direction):
   
   units_traveled += 1 if not direction in [Direction.UL, Direction.LD, Direction.DR, Direction.RU] else 1.414
 
-pygame.init()
+
+
 
 class Direction(Enum):
   Up = 0
@@ -156,12 +161,13 @@ class Direction(Enum):
 class Algorithm(Enum):
   Manual = 0  # control player with numpad
   Random = 1
+  AStar = 2
 ######################################################## 
 
 ################### Adjust as needed ###################
-GRID_WIDTH = 10
-GRID_HEIGHT = 10
-GRID_SIZE = 30 # size in pixels
+GRID_WIDTH = 30
+GRID_HEIGHT = 30
+GRID_SIZE = 20 # size in pixels
 ########################################################
 
 SIDE_SCREEN_WIDTH = 300
@@ -177,8 +183,8 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Waka waka")
 
 ############## Initialize the player's position, we can make more tests using same map but different starting position ####
-player_x = 0 # random.randint(0, GRID_WIDTH - 1)
-player_y = 0 # random.randint(0, GRID_HEIGHT - 1)
+player_x = random.randint(0, GRID_WIDTH - 1)
+player_y = random.randint(0, GRID_HEIGHT - 1)
 ###########################################################################################
 
 grid = [[BLACK for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
@@ -186,9 +192,12 @@ grid = [[BLACK for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 ############## CREATE OBSTACLE MAPS HERE, we'll need like 3 I guess #######################
 obstacles_1 = []
 obstacles_2 = [(3, 5), (4, 5), (4, 6), (5, 6)] # [(y, x), ...]
+obstacles_3 = [(3, 5), (4, 5), (4, 6), (5, 6), (5, 5), (5, 3), (5, 4), (6, 4), (6, 5), (10, 11), (10, 12), (10, 13), (10, 14), (11, 11), (12, 11), (13, 11), (13, 12), (13, 13), (11, 14), (12, 15)]
 
-obstacle_map = obstacles_2
+obstacle_map = obstacles_3
 ###########################################################################################
+
+
 
 for obstacle in obstacle_map:
     grid[obstacle[0]][obstacle[1]] = RED
@@ -198,35 +207,136 @@ units_traveled = 0
 error = 0
 rotation_accumulator = 0
 current_direction = Direction.Right
+spiral_state = 0
+
+
+
+#################################### A* Algorithm #########################################
+# Modify the heuristic to return 0 for black cells to encourage their exploration
+def heuristic(a, b):
+    # If the current node is a black grid cell, reduce the heuristic to encourage exploration
+    if grid[a[0]][a[1]] == BLACK:
+        return 0
+    # Otherwise, use the Manhattan distance heuristic
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+# Function to determine the closest black cell using Breadth-First Search (BFS)
+def get_closest_black_cell(start):
+    queue = [start]
+    visited = set()
+
+    # Iterate through the grid using BFS until a black cell is found
+    while queue:
+        current = queue.pop(0)
+        if grid[current[0]][current[1]] == BLACK:
+            # Return the found black cell as the closest
+            return current
+        visited.add(current)
+        # Explore neighboring cells
+        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+            row, col = current[0] + dy, current[1] + dx
+            # Check for grid boundaries and avoid RED cells
+            if 0 <= row < len(grid) and 0 <= col < len(grid[0]) and grid[row][col] != RED and (row, col) not in visited:
+                queue.append((row, col))
+    # If no black cells found, return None
+    return None
+
+def astar(start, goal):
+    open_set = PriorityQueue()  # Initialize a priority queue to manage nodes for exploration
+    open_set.put((0, start))  # Add the start node to the open set
+    came_from = {}  # Keep track of the previous node in the shortest path
+    g_score = {spot: float("inf") for row in grid for spot in row}  # Keep the current best guess of distance from start to a position
+    g_score[start] = 0  # Set the cost from the start node to itself as 0
+
+    while not open_set.empty():
+        current = open_set.get()[1]  # Get the node with the lowest total cost (f-score)
+
+        if current == goal:
+            # Reconstruct the path from goal to start by traversing the 'came_from' chain
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            return path
+
+        # Explore the neighboring nodes in all four directions: up, down, left, and right
+        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+            row, col = current[0] + dy, current[1] + dx
+
+            # Ensure the node is within the grid's boundaries and is not an obstacle (RED)
+            if 0 <= row < len(grid) and 0 <= col < len(grid[0]) and grid[row][col] != RED:
+                tentative_g_score = g_score[current] + 1  # Tentatively calculate the cost to the node
+
+                # Update the best path if this node provides a shorter path to the goal
+                if tentative_g_score < g_score.get((row, col), float("inf")):
+                    came_from[(row, col)] = current  # Record the path
+                    g_score[(row, col)] = tentative_g_score  # Update the cost to this node
+                    f_score = tentative_g_score + heuristic(goal, (row, col))  # Calculate total score for the node
+                    open_set.put((f_score, (row, col)))  # Add the node to the queue for further exploration
+    return []  # If no path found, return an empty list
+
+# Using the BFS-based closest black cell logic in the pathfinding algorithm
+def navigate_to_closest_black_cell(start):
+    closest_black_cell = get_closest_black_cell(start)
+    if closest_black_cell:
+        # Find the path to the closest black cell using A*
+        return astar(start, closest_black_cell)
+    # Return None if no black cells are found
+    return None
+###########################################################################################
+
 
 def Start():
-  key_pressed = False
-  running = True
-  while running and any(BLACK in row for row in grid):
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN:
-            key_pressed = True          
+    key_pressed = False
+    running = True
+    path = []
 
-    if key_pressed:
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_q]:
-          break
+    while running and any(BLACK in row for row in grid):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                key_pressed = True          
 
-        if algorithm == Algorithm.Manual:
-          manual_control(keys)
-        
-        key_pressed = False
+        if key_pressed:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_q]:
+                break
 
-    # add new algorythms here
-    if algorithm == Algorithm.Random:
-      Update(Direction(random.randint(0, 7)))
+            if algorithm == Algorithm.Manual:
+                manual_control(keys)
+            key_pressed = False
 
-    Render()
+        # add new algorithms here
+        if algorithm == Algorithm.Random:
+            Update(Direction(random.randint(0, 7)))
+        elif algorithm == Algorithm.AStar:
+            if not path:
+                # Generate a new path
+                path = navigate_to_closest_black_cell((player_y, player_x))
+
+            if path:
+                next_step = path.pop()
+                if next_step[0] < player_y:
+                    Update(Direction.Up)
+                elif next_step[0] > player_y:
+                    Update(Direction.Down)
+                elif next_step[1] < player_x:
+                    Update(Direction.Left)
+                elif next_step[1] > player_x:
+                    Update(Direction.Right)
+
+        Render()
+
 
 # change here to test your algorithm
-algorithm = Algorithm.Random
+algorithm = Algorithm.AStar
 Start()
 print(f"Distance traveled {units_traveled} units, error {error} units, total rotation {rotation_accumulator} deg")
+
+# running_display = True
+# while running_display:
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             running_display = False
 pygame.quit()
