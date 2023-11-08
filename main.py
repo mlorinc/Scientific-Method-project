@@ -259,6 +259,7 @@ obstacle_maze = [(3, 3), (3, 4), (3,5), (3,6), (3,7), (3,8), (3,9), (3,10), (3,1
                 (15,12), (15,13), (15,14),
                 (16,14)]
 
+obstacle_map = []
 if (map == Map.Empty):
    obstacle_map = []
 elif (map == Map.Room):
