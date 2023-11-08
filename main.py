@@ -167,6 +167,24 @@ def Update(direction):
     error += 1 if not direction in [Direction.UL, Direction.LD, Direction.DR, Direction.RU] else 1.414
   
   units_traveled += 1 if not direction in [Direction.UL, Direction.LD, Direction.DR, Direction.RU] else 1.414
+  
+def ReverseDir(direction):
+  if direction == Direction.Up:
+    return Direction.Down
+  elif direction == Direction.Down:
+    return Direction.Up
+  elif direction == Direction.Left:
+    return Direction.Right
+  elif direction == Direction.Right:
+    return Direction.Left
+  elif direction == Direction.UL:
+    return Direction.DR
+  elif direction == Direction.LD:
+    return Direction.RU
+  elif direction == Direction.DR:
+    return Direction.UL
+  elif direction == Direction.RU:
+    return Direction.LD
 
 class Direction(Enum):
   Up = 0
@@ -239,7 +257,7 @@ spiral_state = 0
 
 #################################### A* Algorithm #########################################
 # Modify the heuristic to return 0 for black cells to encourage their exploration
-def get_movement_array(direction):
+def get_movement_array(direction = Direction.Up):
   directions = [Direction.Up, Direction.RU, Direction.Right, Direction.DR, Direction.Down, Direction.LD, Direction.Left, Direction.UL]
   index = directions.index(direction)
   
@@ -278,7 +296,7 @@ def get_closest_black_cell_sequential(start):
     queue = [start]
     visited = set()
     
-    movement_array = get_movement_array(Direction.Up)
+    movement_array = get_movement_array()
 
     # Iterate through the grid using BFS until a black cell is found
     while queue:
@@ -306,11 +324,16 @@ def get_closest_black_cell_random():
   return random.choice(black_indexes)
 
 def astar(start, goal):
-    open_set = PriorityQueue()  # Initialize a priority queue to manage nodes for exploration
+    open_set = PriorityQueue()
     open_set.put((0, start))
     came_from = {}
-    g_score = {spot: float("inf") for row in grid for spot in row}  # Keep the current best guess of distance from start to a position
-    g_score[start] = 0 
+    g_score = {spot: float("inf") for row in grid for spot in row}
+    g_score[start] = 0
+    
+    movement_array = get_movement_array()
+    
+    # Uncomment if you dont want to use diagonals
+    # movement_array = [Direction.Up, Direction.Right, Direction.Down, Direction.Left]
   
     while not open_set.empty():
         current = open_set.get()[1]  # Get the node with the lowest total cost (f-score)
@@ -319,24 +342,27 @@ def astar(start, goal):
             # Reconstruct the path from goal to start by traversing the 'came_from' chain
             path = []
             while current in came_from:
-                path.append(current)
-                current = came_from[current]
+                path.append(came_from[current][1])
+                current = came_from[current][0]
+
             return path
 
-        # Explore the neighboring nodes in all four directions: up, down, left, and right
-        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+        # Explore the neighboring nodes in all directions
+        for direction in movement_array:
+            if not can_move(direction, current[0], current[1]):
+              continue
+
+            dy, dx = move(direction)
             row, col = current[0] + dy, current[1] + dx
 
-            # Ensure the node is within the grid's boundaries and is not an obstacle (RED)
-            if 0 <= row < len(grid) and 0 <= col < len(grid[0]) and grid[row][col] != RED:
-                tentative_g_score = g_score[current] + 1
+            tentative_g_score = g_score[current] + 1 if direction in [Direction.Up, Direction.Right, Direction.Left, Direction.Down] else g_score[current] + 1.44
 
-                # Update the best path if this node provides a shorter path to the goal
-                if tentative_g_score < g_score.get((row, col), float("inf")):
-                    came_from[(row, col)] = current 
-                    g_score[(row, col)] = tentative_g_score 
-                    f_score = tentative_g_score + heuristic(goal, (row, col))
-                    open_set.put((f_score, (row, col))) 
+            # Update the best path if this node provides a shorter path to the goal
+            if tentative_g_score < g_score.get((row, col), float("inf")):
+                came_from[(row, col)] = (current, direction) 
+                g_score[(row, col)] = tentative_g_score 
+                f_score = tentative_g_score + heuristic(goal, (row, col))
+                open_set.put((f_score, (row, col))) 
     return [] 
 
 
@@ -407,14 +433,8 @@ def Start():
 
             if path:
                 next_step = path.pop()
-                if next_step[0] < player_y:
-                    Update(Direction.Up)
-                elif next_step[0] > player_y:
-                    Update(Direction.Down)
-                elif next_step[1] < player_x:
-                    Update(Direction.Left)
-                elif next_step[1] > player_x:
-                    Update(Direction.Right)
+                Update(next_step)
+
         elif algorithm == Algorithm.SemiRandom:
           semi_random()
 
@@ -422,7 +442,7 @@ def Start():
 
 
 # change here to test your algorithm
-algorithm = Algorithm.AStartRandom
+algorithm = Algorithm.AStar
 Start()
 print(f"Distance traveled {units_traveled} units, error {error} units, total rotation {rotation_accumulator} deg")
 
