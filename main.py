@@ -183,6 +183,7 @@ class Algorithm(Enum):
   Manual = 0  # control player with numpad
   Random = 1
   AStar = 2
+  AStarSequential = 3
 ######################################################## 
 
 ################### Adjust as needed ###################
@@ -252,7 +253,7 @@ def heuristic(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 # Function to determine the closest black cell using Breadth-First Search (BFS)
-def get_closest_black_cell_direction_based(start, direction):
+def get_closest_black_cell(start, direction):
     queue = [start]
     visited = set()
     
@@ -276,7 +277,7 @@ def get_closest_black_cell_direction_based(start, direction):
   
     return None
   
-def get_closest_black_cell(start, direction):
+def get_closest_black_cell_sequential(start):
     queue = [start]
     visited = set()
     
@@ -336,13 +337,19 @@ def astar(start, goal):
 
 # Using the BFS-based closest black cell logic in the pathfinding algorithm
 def navigate_to_closest_black_cell(start, direction):
+  global algorithm
+
+  closest_black_cell = None
+  if algorithm == Algorithm.AStar:
     closest_black_cell = get_closest_black_cell(start, direction)
-    print(closest_black_cell)
-    if closest_black_cell:
-        # Find the path to the closest black cell using A*
-        return astar(start, closest_black_cell)
-    # Return None if no black cells are found
-    return None
+  elif algorithm == Algorithm.AStarSequential:
+    closest_black_cell = get_closest_black_cell_sequential(start)
+
+  if closest_black_cell:
+      # Find the path to the closest black cell using A*
+      return astar(start, closest_black_cell)
+  # Return None if no black cells are found
+  return None
 ###########################################################################################
 
 
@@ -370,7 +377,7 @@ def Start():
         # add new algorithms here
         if algorithm == Algorithm.Random:
             Update(Direction(random.randint(0, 7)))
-        elif algorithm == Algorithm.AStar:
+        elif algorithm == Algorithm.AStar or algorithm == Algorithm.AStarSequential:
             if not path:
                 # Generate a new path
                 path = navigate_to_closest_black_cell((player_y, player_x), current_direction)
@@ -390,7 +397,7 @@ def Start():
 
 
 # change here to test your algorithm
-algorithm = Algorithm.AStar
+algorithm = Algorithm.AStarSequential
 Start()
 print(f"Distance traveled {units_traveled} units, error {error} units, total rotation {rotation_accumulator} deg")
 
