@@ -252,7 +252,7 @@ def heuristic(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 # Function to determine the closest black cell using Breadth-First Search (BFS)
-def get_closest_black_cell(start, direction):
+def get_closest_black_cell_direction_based(start, direction):
     queue = [start]
     visited = set()
     
@@ -265,7 +265,30 @@ def get_closest_black_cell(start, direction):
             return current
         visited.add(current)
         for direction in movement_array:
-          print(direction, current[0], current[1])
+          if not can_move(direction, current[0], current[1]):
+            continue
+
+          dy, dx = move(direction)
+          row, col = current[0] + dy, current[1] + dx
+          if(row, col) not in visited:
+            queue.append((row, col))
+            visited.add((row, col) )
+  
+    return None
+  
+def get_closest_black_cell(start, direction):
+    queue = [start]
+    visited = set()
+    
+    movement_array = get_movement_array(Direction.Up)
+
+    # Iterate through the grid using BFS until a black cell is found
+    while queue:
+        current = queue.pop(0)
+        if grid[current[0]][current[1]] == BLACK:
+            return current
+        visited.add(current)
+        for direction in movement_array:
           if not can_move(direction, current[0], current[1]):
             continue
 
