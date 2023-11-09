@@ -416,7 +416,7 @@ class Map(Enum):
 ########################################################
 
 
-def Start(algorithm, map, player_x, player_y, save = False):
+def Start(algorithm, map, save = False):
     global rotation_accumulator, current_direction, units_traveled, EV3_path, error, grid
     global BLACK, WHITE, RED, CYAN, GRID_WIDTH, GRID_HEIGHT, GRID_SIZE
     global screen, font, WIDTH, SIDE_SCREEN_WIDTH, HEIGHT, font_size
@@ -469,16 +469,6 @@ def Start(algorithm, map, player_x, player_y, save = False):
 
     for obstacle in obstacle_map:
         grid[obstacle[0]][obstacle[1]] = RED
-    ########################################################
-
-        
-    ############## Initialize the player's position, we can make more tests using same map but different starting position ####
-    #player_x = 23 #random.randint(0, GRID_WIDTH - 1)
-    #player_y = 24 #random.randint(0, GRID_HEIGHT - 1)
-
-    while grid[player_y][player_x] == RED:
-      player_x = random.randint(0, GRID_WIDTH - 1)
-      player_y = random.randint(0, GRID_HEIGHT - 1)
     ########################################################
 
     grid[player_y][player_x] = WHITE # Start position is white
@@ -541,21 +531,29 @@ def Start(algorithm, map, player_x, player_y, save = False):
 
 
 #################### Loop to generate data for applying statistics ########################
-def generate_data(algorithms, maps, test_trials):
+def generate_data(algorithms, maps, test_trials, positions):
+  global player_y, player_x
   with open("data.txt", "a") as file:
     for algorithm in algorithms:
       for map in maps:
-        player_x = random.randint(0, GRID_WIDTH - 1)
-        player_y = random.randint(0, GRID_HEIGHT - 1)
         for i in range(test_trials):
-          units_traveled, error, rotation_accumulator, time_taken = Start(algorithm, map, player_x, player_y)
+          player_y = positions[map][i][0]
+          player_x = positions[map][i][1]
+          units_traveled, error, rotation_accumulator, time_taken = Start(algorithm, map)
           data = f"{units_traveled},{error},{rotation_accumulator},{time_taken},{algorithm.value},{map.value}\n"
           file.write(data)
 
-
+player_y = 0
+player_x = 0
 #algorithms = [Algorithm.SemiRandom, Algorithm.AStartRandom, Algorithm.AStar, Algorithm.AStarSequential]
 algorithms = [Algorithm.AStar, Algorithm.AStarSequential]
+starting_positions = {
+  Map.Empty: [(1, 0), (23, 27), (25, 3), (6, 19), (12, 14), (12, 27), (23, 7), (17, 16), (11, 3), (6, 11), (20, 17), (22, 5), (7, 0), (25, 23), (11, 1), (16, 6), (11, 25), (4, 27), (7, 16), (21, 7), (10, 20), (15, 15), (14, 5), (27, 3), (21, 6)],
+  Map.Room: [(11, 1), (28, 21), (12, 21), (12, 29), (21, 23), (3, 25), (6, 11), (17, 1), (10, 5), (29, 2), (12, 26), (29, 22), (21, 0), (14, 12), (19, 7), (19, 10), (0, 14), (10, 16), (2, 10), (17, 21), (14, 22), (16, 28), (17, 2), (28, 24), (10, 8)],
+  Map.Maze: [(22, 23), (2, 28), (11, 0), (14, 0), (5, 2), (1, 28), (17, 9), (6, 29), (5, 15), (13, 17), (5, 2), (0, 22), (14, 24), (22, 0), (2, 15), (1, 15), (2, 5), (13, 20), (15, 15), (27, 20), (6, 7), (13, 20), (1, 10), (16, 8), (14, 4)],
+  Map.Crazy: [(26, 12), (29, 16), (3, 5), (16, 26), (3, 3), (23, 29), (1, 29), (28, 5), (29, 0), (28, 26), (21, 19), (18, 1), (3, 8), (22, 17), (12, 15), (11, 13), (26, 0), (10, 1), (6, 8), (28, 12), (17, 3), (17, 23), (14, 9), (15, 16), (24, 0)]
+}
 maps = [Map.Empty, Map.Room, Map.Maze, Map.Crazy]
 test_trials = 25
-generate_data(algorithms, maps, test_trials)
+generate_data(algorithms, maps, test_trials, starting_positions)
 ###########################################################################################
