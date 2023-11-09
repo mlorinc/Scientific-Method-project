@@ -543,11 +543,11 @@ def Start(algorithm, map, player_x, player_y, save = False):
 #################### Loop to generate data for applying statistics ########################
 def generate_data(algorithms, maps, test_trials):
   with open("data.txt", "a") as file:
-    for algorithm in algorithms:
-      for map in maps:
-        player_x = random.randint(0, GRID_WIDTH - 1)
-        player_y = random.randint(0, GRID_HEIGHT - 1)
-        for i in range(test_trials):
+    for i in range(test_trials):
+      player_x = random.randint(0, GRID_WIDTH - 1)
+      player_y = random.randint(0, GRID_HEIGHT - 1)
+      for algorithm in algorithms:
+        for map in maps:
           units_traveled, error, rotation_accumulator, time_taken = Start(algorithm, map, player_x, player_y)
           data = f"{units_traveled},{error},{rotation_accumulator},{time_taken},{algorithm.value},{map.value}\n"
           file.write(data)
@@ -556,6 +556,6 @@ def generate_data(algorithms, maps, test_trials):
 #algorithms = [Algorithm.SemiRandom, Algorithm.AStartRandom, Algorithm.AStar, Algorithm.AStarSequential]
 algorithms = [Algorithm.AStar, Algorithm.AStarSequential]
 maps = [Map.Empty, Map.Room, Map.Maze, Map.Crazy]
-test_trials = 25
+test_trials = 20
 generate_data(algorithms, maps, test_trials)
 ###########################################################################################
