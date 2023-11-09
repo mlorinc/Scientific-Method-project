@@ -364,9 +364,7 @@ def astar(start, goal):
 
 
 # Using the BFS-based closest black cell logic in the pathfinding algorithm
-def navigate_to_closest_black_cell(start, direction):
-  global algorithm
-
+def navigate_to_closest_black_cell(start, direction, algorithm):
   closest_black_cell = None
   if algorithm == Algorithm.AStar:
     closest_black_cell = get_closest_black_cell(start, direction)
@@ -418,8 +416,8 @@ class Map(Enum):
 ########################################################
 
 
-def Start(algorithm, map, save = False):
-    global player_x, player_y, rotation_accumulator, current_direction, units_traveled, EV3_path, error, grid
+def Start(algorithm, map, player_x, player_y, save = False):
+    global rotation_accumulator, current_direction, units_traveled, EV3_path, error, grid
     global BLACK, WHITE, RED, CYAN, GRID_WIDTH, GRID_HEIGHT, GRID_SIZE
     global screen, font, WIDTH, SIDE_SCREEN_WIDTH, HEIGHT, font_size
     key_pressed = False
@@ -475,8 +473,8 @@ def Start(algorithm, map, save = False):
 
         
     ############## Initialize the player's position, we can make more tests using same map but different starting position ####
-    player_x = 0 #random.randint(0, GRID_WIDTH - 1)
-    player_y = 0 #random.randint(0, GRID_HEIGHT - 1)
+    #player_x = 23 #random.randint(0, GRID_WIDTH - 1)
+    #player_y = 24 #random.randint(0, GRID_HEIGHT - 1)
 
     while grid[player_y][player_x] == RED:
       player_x = random.randint(0, GRID_WIDTH - 1)
@@ -509,7 +507,7 @@ def Start(algorithm, map, save = False):
         elif algorithm in [Algorithm.AStar, Algorithm.AStarSequential, Algorithm.AStartRandom]:
             if not path:
                 # Generate a new path
-                path = navigate_to_closest_black_cell((player_y, player_x), current_direction)
+                path = navigate_to_closest_black_cell((player_y, player_x), current_direction, algorithm)
             if path:
                 next_step = path.pop()
                 Update(next_step)
@@ -535,7 +533,7 @@ def Start(algorithm, map, save = False):
     return units_traveled, error, rotation_accumulator, time_taken
 
 ########################### Change selected algorithm and map #############################
-# algorithm = Algorithm.AStar
+# algorithm = Algorithm.Manual
 # map = Map.Room
 
 # Start(algorithm, map)
@@ -544,16 +542,19 @@ def Start(algorithm, map, save = False):
 
 #################### Loop to generate data for applying statistics ########################
 def generate_data(algorithms, maps, test_trials):
-  with open("data.txt", "w") as file:
+  with open("data.txt", "a") as file:
     for algorithm in algorithms:
       for map in maps:
+        player_x = random.randint(0, GRID_WIDTH - 1)
+        player_y = random.randint(0, GRID_HEIGHT - 1)
         for i in range(test_trials):
-          units_traveled, error, rotation_accumulator, time_taken = Start(algorithm.value, map.value)
+          units_traveled, error, rotation_accumulator, time_taken = Start(algorithm, map, player_x, player_y)
           data = f"{units_traveled},{error},{rotation_accumulator},{time_taken},{algorithm.value},{map.value}\n"
           file.write(data)
 
 
-algorithms = [Algorithm.Random, Algorithm.SemiRandom, Algorithm.AStartRandom, Algorithm.AStar, Algorithm.AStarSequential]
+#algorithms = [Algorithm.SemiRandom, Algorithm.AStartRandom, Algorithm.AStar, Algorithm.AStarSequential]
+algorithms = [Algorithm.AStar, Algorithm.AStarSequential]
 maps = [Map.Empty, Map.Room, Map.Maze, Map.Crazy]
 test_trials = 25
 generate_data(algorithms, maps, test_trials)
