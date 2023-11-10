@@ -1,4 +1,6 @@
 Title: 
+Abstract
+
 
 This is the implementation of a comparable analysis of a scientific project, which was conducted in November 2023 at the University of Southern Denmark (SDU) in Odense in the lecture Scientific Methods.
 
