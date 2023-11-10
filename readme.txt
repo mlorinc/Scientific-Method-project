@@ -14,7 +14,7 @@ The primary objective was to optimize the robot's coverage of the entire area, m
 
 
 The data is in the following format:
-{units_traveled: dependent},{error: depentent},{rotation_accumulator: depentent},{time_taken: dependent},{algorithm.value: independent},{map.value: independent}
+{units_traveled},{error},{rotation_accumulator},{time_taken},{algorithm.value},{map.value}
 
 The algorithm choices include:
 0: Random
