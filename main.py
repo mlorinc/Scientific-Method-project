@@ -269,13 +269,12 @@ def heuristic(a, b):
     # Use the Manhattan distance heuristic
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-# Function to determine the closest black cell using Breadth-First Search (BFS)
 def get_closest_black_cell(start, direction):
     queue = [start]
     visited = set()
     movement_array = get_movement_array(direction)
 
-    # Iterate through the grid using BFS until a black cell is found
+    # Iterate through the grid until a black cell is found
     while queue:
         current = queue.pop(0)
         if grid[current[0]][current[1]] == BLACK:
@@ -553,7 +552,7 @@ def generate_data(algorithms, maps, test_trials, positions):
 
 player_y = 0
 player_x = 0
-algorithms = [Algorithm.Random, Algorithm.SemiRandom, Algorithm.AStartRandom, Algorithm.AStarSequential, Algorithm.AStar]
+algorithms = [Algorithm.AStartRandom, Algorithm.AStarSequential, Algorithm.AStar]
 starting_positions = {
   Map.Empty: [(1, 0), (23, 27), (25, 3), (6, 19), (12, 14), (12, 27), (23, 7), (17, 16), (11, 3), (6, 11), (20, 17), (22, 5), (7, 0), (25, 23), (11, 1), (16, 6), (11, 25), (4, 27), (7, 16), (21, 7), (10, 20), (15, 15), (14, 5), (27, 3), (21, 6)],
   Map.Room: [(11, 1), (28, 21), (12, 21), (12, 29), (21, 23), (3, 25), (6, 11), (17, 1), (10, 5), (29, 2), (12, 26), (29, 22), (21, 0), (14, 12), (19, 7), (19, 10), (0, 14), (10, 16), (2, 10), (17, 21), (14, 22), (16, 28), (17, 2), (28, 24), (10, 8)],
