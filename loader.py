@@ -5,15 +5,15 @@ from enums import Algorithm, Map
 from pathlib import Path
 
 dependent_variables = [
-        "units traveled",
-        "error",
-        "rotation accumulator",
-        "time_taken"
+        "Units traveled",
+        "Error",
+        "Rotation accumulator",
+        "Time taken"
         ]
 
 independent_variables = [
-    "algorithm",
-    "map"
+    "Algorithm",
+    "Map"
 ]
 
 def get_files(root: str = "."):
@@ -32,8 +32,8 @@ def load_data(root: str = "."):
     database = pd.DataFrame(columns=dependent_variables+independent_variables)
     for file, x, y in get_files(root):
         df = pd.read_csv(file, names=dependent_variables+independent_variables)
-        df["algorithm"] = df["algorithm"].apply(lambda x: Algorithm(x).name)
-        df["map"] = df["map"].apply(lambda x: Map(x).name)
+        df["Algorithm"] = df["Algorithm"].apply(lambda x: Algorithm(x).name)
+        df["Map"] = df["Map"].apply(lambda x: Map(x).name)
         df["x"] = x
         df["y"] = y
         database = pd.concat((df, database))
