@@ -6,6 +6,9 @@ Step 2. Convert path traveled in simulation to path for the real robot and see h
 
 Step 3. Analyse the data and make a scientific report
 
+# Install stats dependencies
+
+conda create --name scm --file conda_requirements.txt
 
 # Title: 
 # Abstract
@@ -65,3 +68,18 @@ data_0_0.txt, data_13_16.txt, data_23_24.txt:
 
 data_compare_astar.txt:
     These two algorithms were seperately compared with 25 different starting positions on every map (data_compare_astar.txt), because their results in the above files are the same for each test trial (because they don't use random movement).
+
+# Plotting
+
+` python ./stats.py graph:all . -e pdf`
+
+# Hypothesis testing
+
+`python ./stats.py hypothesis:generic . "A* Orientation" "A* Sequential" "Rotation accumulator"`
+
+`python ./stats.py hypothesis:generic . "A* Orientation" "A* Random" "Rotation accumulator"`
+
+`python ./stats.py hypothesis:generic . "A* Orientation" "A* Sequential" "Error"`
+
+`python ./stats.py hypothesis:generic . "A* Orientation" "A* Sequential" "Time taken"`
+
