@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 from pathlib import Path
 from loader import dependent_variables, load_data, get_graph_ylabel
 
+# Specify order of algorithms on X axis
 order = [
     get_algorithm_name(Algorithm.Random),
     get_algorithm_name(Algorithm.SemiRandom),
@@ -16,6 +17,9 @@ order = [
 ]
 
 def setup(output: str, format: str):
+    """
+    Perform file format check and folder existence check.
+    """
     pattern = r"^[a-zA-Z0-9-]+$"
     
     # Use re.match to check if the extension matches the pattern
@@ -28,6 +32,10 @@ def setup(output: str, format: str):
     return output_path, format
 
 def generate_boxplot(data: str, output: str, format="png"):
+    """
+    Generate boxplot for multiple dependent variables, which are
+    sorted based on Map and Algorithm.
+    """
     output_path, format = setup(output, format)
     # Set figure size to A4 landscape (in inches)
     # a4_width_inch = 11.69 // 2  # 29.7 cm
@@ -44,6 +52,9 @@ def generate_boxplot(data: str, output: str, format="png"):
             plt.clf()
 
 def generate_hypothesis_1_boxplot(data: str, output: str, format="png"):
+    """
+    Generate boxplots for stochastic algorithms.
+    """
     output_path, format = setup(output, format)
     df = load_data(data)
     df = df.loc[df["Algorithm"].isin([get_algorithm_name(Algorithm.Random), get_algorithm_name(Algorithm.SemiRandom)]), :]
@@ -56,6 +67,9 @@ def generate_hypothesis_1_boxplot(data: str, output: str, format="png"):
 
 
 def generate_hypothesis_2_boxplot(data, output, format):
+    """
+    Generate boxplots, although do not take map into account.
+    """
     output_path, format = setup(output, format)
     df = load_data(data)
 
@@ -86,6 +100,9 @@ def generate_hypothesis_2_boxplot(data, output, format):
     # plt.clf()
 
 def generate_astar_boxplot(data: str, output: str, format="png"):
+    """
+    Generate A* specific box plots.
+    """
     output_path, format = setup(output, format)
     df = load_data(data)
     df = df.loc[df["Algorithm"].isin([get_algorithm_name(Algorithm.AStarOrientation), get_algorithm_name(Algorithm.AStarSequential)]), :]

@@ -10,6 +10,7 @@ class Algorithm(Enum):
   AStarOrientation = 4
 ######################################################## 
 
+# Human readable algorithm forms
 algorithm_name_mapping = {
   Algorithm.Manual: "Manual",
   Algorithm.Random: "Random",

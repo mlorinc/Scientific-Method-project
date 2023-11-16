@@ -9,6 +9,9 @@ from scipy.stats import f_oneway, levene, ttest_ind, shapiro, mannwhitneyu
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 def normality_test(data: np.ndarray, alpha=0.05):
+    """
+    Perform normality test on data.
+    """
     # Perform Shapiro-Wilk test
     stat, p_value = shapiro(data)
 
@@ -25,6 +28,9 @@ def normality_test(data: np.ndarray, alpha=0.05):
         return False
 
 def homoscedasticity_test(alpha: float, *groups):
+    """
+    Perform variance test for t_test
+    """
     statistic, p_value = levene(*groups)
 
     # Print the results
@@ -56,6 +62,12 @@ def anova(alpha: float, *groups: np.ndarray):
         print("Fail to reject the null hypothesis. No significant differences among group means.")
 
 def t_test(a: np.ndarray, b: np.ndarray, alternative: str, alpha=0.05):
+    """
+    Perform test to verify whether variable is less/greater/not equal.
+    Based on properties of data such distribution and variance, the most
+    fitting test will be chosen. 
+    """
+
     normality1, normality2 = normality_test(a, alpha), normality_test(b, alpha)
 
     if normality1 and normality2:
@@ -79,6 +91,7 @@ def t_test(a: np.ndarray, b: np.ndarray, alternative: str, alpha=0.05):
     else:
         print("Fail to reject the null hypothesis. No significant difference between group means.")
 
+# obsolete
 def hypothesis_1(data: str):
     df = load_data(data)
     df = df.loc[df["Algorithm"].isin([get_algorithm_name(Algorithm.Random), get_algorithm_name(Algorithm.SemiRandom)]), ["Algorithm", "Units traveled"]]
@@ -87,6 +100,8 @@ def hypothesis_1(data: str):
     
     t_test(semi_random, rand, alternative="less")
 
+# MANOVA attempt. Not used, although it verified, that A* Sequential and A* Orientation
+# are closely related.
 def hypothesis_2(data: str):
     alpha = 0.05
     df = load_data(data)
@@ -109,6 +124,7 @@ def hypothesis_2(data: str):
             result = pg.pairwise_gameshowell(data=df, dv=var, between="Algorithm")
             print(result)
 
+# obsolete
 def hypothesis_3(data: str):
     df = load_data(data)
     df = df.loc[df["Algorithm"].isin([get_algorithm_name(Algorithm.AStarOrientation), get_algorithm_name(Algorithm.AStarSequential)]), ["Algorithm", "Rotation accumulator"]]
@@ -117,6 +133,7 @@ def hypothesis_3(data: str):
     
     t_test(orientation, sequential, alternative="less")
 
+# obsolete
 def hypothesis_4(data: str):
     df = load_data(data)
     df = df.loc[df["Algorithm"].isin([get_algorithm_name(Algorithm.AStarOrientation), get_algorithm_name(Algorithm.AStarSequential)]), ["Algorithm", "Error"]]
@@ -125,6 +142,7 @@ def hypothesis_4(data: str):
     
     t_test(orientation, sequential, alternative="less")
 
+# obsolete
 def hypothesis_5(data: str):
     df = load_data(data)
     df = df.loc[df["Algorithm"].isin([get_algorithm_name(Algorithm.AStarOrientation), get_algorithm_name(Algorithm.AStarSequential)]), ["Algorithm", "Time taken"]]
@@ -134,9 +152,13 @@ def hypothesis_5(data: str):
     t_test(orientation, sequential, alternative="less")
 
 def hypothesis_custom(data: str, algo1: str, algo2: str, variable: str, alternative: str):
+    """
+    Compare 2 data arrays according to alternate hypothesis using Student T-test,
+    Manwhitney U Test or Welch test.
+    """
     df = load_data(data)
     df = df.loc[df["Algorithm"].isin([algo1, algo2]), ["Algorithm", variable]]
     orientation = df.loc[df["Algorithm"] == algo1, variable]
     sequential = df.loc[df["Algorithm"] == algo2, variable]
     
-    t_test(orientation, sequential, alternative="less")
+    t_test(orientation, sequential, alternative=alternative)
