@@ -2,10 +2,18 @@ import seaborn as sns
 import pandas as pd
 import re
 from sklearn.decomposition import PCA
-from enums import Algorithm
+from enums import Algorithm, get_algorithm_name
 from matplotlib import pyplot as plt
 from pathlib import Path
-from loader import dependent_variables, load_data
+from loader import dependent_variables, load_data, get_graph_ylabel
+
+order = [
+    get_algorithm_name(Algorithm.Random),
+    get_algorithm_name(Algorithm.SemiRandom),
+    get_algorithm_name(Algorithm.AStarRandom),
+    get_algorithm_name(Algorithm.AStarSequential),
+    get_algorithm_name(Algorithm.AStarOrientation)
+]
 
 def setup(output: str, format: str):
     pattern = r"^[a-zA-Z0-9-]+$"
@@ -30,19 +38,19 @@ def generate_boxplot(data: str, output: str, format="png"):
     df = load_data(data)
     for independent_var in ["Algorithm"]:
         for dependent_var in dependent_variables:
-            ax = sns.boxplot(data=df, y=dependent_var, x=independent_var, hue="Map")
-            ax.set(yscale="log")
+            ax = sns.boxplot(data=df, y=dependent_var, x=independent_var, hue="Map", order=order)
+            ax.set(yscale="log", ylabel=get_graph_ylabel(dependent_var))
             plt.savefig(output_path / f"{independent_var}_{dependent_var}.{format}".lower().replace(" ", "_"))
             plt.clf()
 
 def generate_hypothesis_1_boxplot(data: str, output: str, format="png"):
     output_path, format = setup(output, format)
     df = load_data(data)
-    df = df.loc[df["Algorithm"].isin([Algorithm.Random.name, Algorithm.SemiRandom.name]), :]
+    df = df.loc[df["Algorithm"].isin([get_algorithm_name(Algorithm.Random), get_algorithm_name(Algorithm.SemiRandom)]), :]
     print(df)
     for dependent_var in dependent_variables:
-        ax = sns.boxplot(data=df, y=dependent_var, x="Algorithm", hue="Map")
-        ax.set(yscale="log")
+        ax = sns.boxplot(data=df, y=dependent_var, x="Algorithm", hue="Map", order=order)
+        ax.set(yscale="log", ylabel=get_graph_ylabel(dependent_var))
         plt.savefig(output_path / f"stochastic_boxplot_{dependent_var}.{format}".lower().replace(" ", "_"))
         plt.clf()
 
@@ -56,7 +64,7 @@ def generate_hypothesis_2_boxplot(data, output, format):
 
     ax = None
     for var in dependent_variables:
-        ax = sns.boxplot(data=df, y=var, x="Algorithm")
+        ax = sns.boxplot(data=df, y=var, x="Algorithm", order=order)
     ax.set(ylabel="Time taken (normalized)")
     plt.savefig(output_path / f"perfomance.{format}".lower().replace(" ", "_"))
     plt.clf()
@@ -77,12 +85,13 @@ def generate_hypothesis_2_boxplot(data, output, format):
     # plt.savefig(output_path / f"perfomance.{format}".lower().replace(" ", "_"))
     # plt.clf()
 
-def generate_hypothesis_3_boxplot(data: str, output: str, format="png"):
+def generate_astar_boxplot(data: str, output: str, format="png"):
     output_path, format = setup(output, format)
     df = load_data(data)
-    df = df.loc[df["Algorithm"].isin([Algorithm.AStarSequential.name, Algorithm.AStar.name]), :]
-    for dependent_var in ["Rotation accumulator"]:
-        ax = sns.boxplot(data=df, y=dependent_var, x="Algorithm", hue="Map")
-        # ax.set(yscale="log")
-    plt.savefig(output_path / f"astar_rotation_boxplot_{dependent_var}.{format}".lower().replace(" ", "_"))
-    plt.clf()
+    df = df.loc[df["Algorithm"].isin([get_algorithm_name(Algorithm.AStarOrientation), get_algorithm_name(Algorithm.AStarSequential)]), :]
+    # print(df)
+    for dependent_var in dependent_variables:
+        ax = sns.boxplot(data=df, y=dependent_var, x="Algorithm", hue="Map", order=order)
+        ax.set(ylabel=get_graph_ylabel(dependent_var))
+        plt.savefig(output_path / f"astar_{dependent_var}_boxplot_{dependent_var}.{format}".lower().replace(" ", "_"))
+        plt.clf()
