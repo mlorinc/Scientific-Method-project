@@ -361,7 +361,7 @@ def navigate_to_closest_black_cell(start, direction, algorithm):
     closest_black_cell = get_closest_black_cell(start, direction)
   elif algorithm == Algorithm.AStarSequential:
     closest_black_cell = get_closest_black_cell_sequential(start)
-  elif algorithm == Algorithm.AStartRandom:
+  elif algorithm == Algorithm.AStarRandom:
     closest_black_cell = get_closest_black_cell_random()
 
   if closest_black_cell:
@@ -467,7 +467,7 @@ def Start(algorithm, map, save = False):
         # add new algorithms here
         if algorithm == Algorithm.Random:
             Update(Direction(random.randint(0, 7)))
-        elif algorithm in [Algorithm.AStar, Algorithm.AStarSequential, Algorithm.AStartRandom]:
+        elif algorithm in [Algorithm.AStar, Algorithm.AStarSequential, Algorithm.AStarRandom]:
             if not path:
                 # Generate a new path
                 path = navigate_to_closest_black_cell((player_y, player_x), current_direction, algorithm)
@@ -519,7 +519,8 @@ def generate_data(algorithms, maps, test_trials, positions):
 
 player_y = 0
 player_x = 0
-algorithms = [Algorithm.AStartRandom, Algorithm.AStarSequential, Algorithm.AStar]
+algorithms = [Algorithm.AStarRandom, Algorithm.AStarSequential, Algorithm.AStarOrientation]
+#algorithms = [Algorithm.SemiRandom, Algorithm.AStarRandom, Algorithm.AStar, Algorithm.AStarSequential]
 starting_positions = {
   Map.Empty: [(1, 0), (23, 27), (25, 3), (6, 19), (12, 14), (12, 27), (23, 7), (17, 16), (11, 3), (6, 11), (20, 17), (22, 5), (7, 0), (25, 23), (11, 1), (16, 6), (11, 25), (4, 27), (7, 16), (21, 7), (10, 20), (15, 15), (14, 5), (27, 3), (21, 6)],
   Map.Room: [(11, 1), (28, 21), (12, 21), (12, 29), (21, 23), (3, 25), (6, 11), (17, 1), (10, 5), (29, 2), (12, 26), (29, 22), (21, 0), (14, 12), (19, 7), (19, 10), (0, 14), (10, 16), (2, 10), (17, 21), (14, 22), (16, 28), (17, 2), (28, 24), (10, 8)],
