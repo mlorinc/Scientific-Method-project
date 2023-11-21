@@ -49,3 +49,9 @@ class Direction(Enum):
   LD = 5
   DR = 6
   RU = 7
+
+class TileState(Enum):
+  UNVISITED = 0
+  OBSTACLE = 1
+  VISITED = 2
+  PLAYER = 3
