@@ -62,15 +62,27 @@ class Game(object):
       self.screen_dimension = np.array([grid_size[0] * grid_dimension[0] + self._screen_width, grid_size[1] * grid_dimension[1]])
       self.screen = pygame.display.set_mode(self.screen_dimension)
       self.set_tile_state(start, TileState.VISITED)
+      self._obstacles = obstacles
       for obstacle in obstacles:
          self.set_tile_state(obstacle, TileState.OBSTACLE)
       self.unvisited_count = self.grid.size - 1 - len(obstacles)
       self.side_dimension = np.array([self._screen_width, self.screen_dimension[1]])
       self.side_start = self.screen_dimension - self.side_dimension
 
-    def update(self, direction):
+    def reset(self):
+      grid = np.copy(self.grid)
+      self.position = self.start_position
+      self.grid = np.zeros(self.grid_size, dtype=np.int8)
+      self.set_tile_state(self.start_position, TileState.VISITED)
+      for obstacle in self._obstacles:
+         self.set_tile_state(obstacle, TileState.OBSTACLE)
+      self.unvisited_count = self.grid.size - 1 - len(self._obstacles)
+      self.current_direction = Direction.Right
+      return grid
+
+    def update(self, direction) -> TileState:
         if not self.can_move(direction, self.position):
-            return
+            return TileState.OBSTACLE
 
         move_vector = get_move_vector(direction)
         old_position = np.copy(self.position)
@@ -79,18 +91,22 @@ class Game(object):
         self.rotation_accumulator += calculate_rotation(get_orentation_vector(self.current_direction), get_orentation_vector(self.current_direction))
         ev3_rotation = EV3Rotation(get_orentation_vector(self.current_direction), get_orentation_vector(self.current_direction))
         move_distance = 1 if not direction in [Direction.UL, Direction.LD, Direction.DR, Direction.RU] else 1.414
+        result = None
         if self.get_tile_state(self.position) == TileState.UNVISITED:
             self.set_tile_state(self.position, TileState.VISITED)
             self.unvisited_count -= 1
             self._render_queue.append(self.position)
             self._render_queue.append(old_position)
+            result = TileState.UNVISITED
         else:
+            result = TileState.VISITED
             self.error += move_distance
             
         self.units_traveled += move_distance
         self.ev3_path.append((ev3_rotation, move_distance))
         
         self.current_direction = direction
+        return result
 
     def draw_rectangle(self, position: np.ndarray, color=None):
       color = color or color_mapping[self.get_tile_state(position)]

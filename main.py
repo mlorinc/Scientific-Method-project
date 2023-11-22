@@ -13,6 +13,7 @@ import semi_random
 from algorithm import AlgorithmBase
 import pandas as pd
 from typing import List, Tuple
+import dqn_agent
 
 def Start(start_position, algorithm, map, save = False):
     running = True
@@ -47,6 +48,10 @@ def Start(start_position, algorithm, map, save = False):
     game.prepare_map((30, 30), start_position, obstacle_map, grid_dimension=(10, 10))
     game.render()
     # time.sleep(1)
+
+    dqn_agent.create_agent(game)
+
+    return game.data_to_tuple()
 
     algo: AlgorithmBase = algorithm_map[algorithm]
 
@@ -86,7 +91,8 @@ def main():
     Map.Spiral: [(22, 23), (2, 28), (11, 0), (14, 0), (5, 2), (1, 28), (17, 9), (6, 29), (5, 15), (13, 17), (5, 2), (0, 22), (14, 24), (22, 0), (2, 15), (1, 15), (2, 5), (13, 20), (15, 15), (27, 20), (6, 7), (13, 20), (1, 10), (16, 8), (14, 4)],
     Map.Maze: [(26, 12), (29, 16), (3, 5), (16, 26), (3, 3), (23, 29), (1, 29), (28, 5), (29, 0), (28, 26), (21, 19), (18, 1), (3, 8), (22, 17), (12, 15), (11, 13), (26, 0), (10, 1), (6, 8), (28, 12), (17, 3), (17, 23), (14, 9), (15, 16), (24, 0)]
   }
-  maps = [Map.Empty, Map.Room, Map.Spiral, Map.Maze]
+  # maps = [Map.Empty, Map.Room, Map.Spiral, Map.Maze]
+  maps = [Map.Room]
   test_trials = 1
   df = generate_data(algorithms, maps, test_trials, starting_positions)
   print(df)
